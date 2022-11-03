@@ -21,7 +21,16 @@ export class ImageGalleryItem extends Component {
           alt={gallerys.tags}
           onClick={this.toggleModal}
         />
-        {showModal && <Modal forModal={gallerys} onToggle={this.toggleModal} />}
+        {showModal && (
+          <Modal forModal={gallerys} onToggle={this.toggleModal}>
+            <img
+              src={gallerys.largeImageURL}
+              alt={gallerys.tags}
+              width={740}
+              height={480}
+            />
+          </Modal>
+        )}
       </li>
     );
   }
