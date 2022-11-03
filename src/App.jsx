@@ -15,73 +15,52 @@ export class App extends Component {
     totalHits: 0,
   };
 
-  // async componentDidUpdate(prevProps, prevState) {
-  //   if (
-  //     prevState.name !== this.state.name ||
-  //     prevState.page !== this.state.page
-  //   ) {
-  //     this.setState({ isLoading: true });
+  async componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.name !== this.state.name ||
+      prevState.page !== this.state.page
+    ) {
+      this.setState({ isLoading: true });
 
-  //     const { hits } = await FetchAPI(this.state.name, this.state.page);
-  //     this.setState({
-  //       gallerys: [...hits],
-  //       isLoading: false,
-  //     });
-  //   }
-  // }
-  handleSubmitForm = async name => {
-    this.setState({ isLoading: true, page: 1 });
-
-    const { hits, totalHits } = await FetchAPI(name, this.state.page);
-    if (hits.length === 0) {
-      toast.error(`try again,${name} is not exis`);
+      const { hits, totalHits: total } = await FetchAPI(
+        this.state.name,
+        this.state.page
+      );
+      if (hits.length === 0) {
+        toast.error(`try again,${this.state.name} is not exis`);
+      }
+      this.setState(({ gallerys }) => ({
+        gallerys: [...gallerys, ...hits],
+        isLoading: false,
+        totalHits: total,
+      }));
     }
-
-    this.setState({
-      gallerys: [...hits],
+  }
+  handleSubmitForm = name => {
+    this.setState(prevState => ({
+      gallerys: [],
       name: name,
-      totalHits: totalHits,
-      isLoading: false,
-    });
+      page: 1,
+      isLoading: !prevState.isLoading,
+    }));
   };
   onClickBtn = async () => {
-    const { hits } = await FetchAPI(this.state.name, (this.state.page += 1));
-
-    this.setState(prevState => ({
-      gallerys: [...prevState.gallerys, ...hits],
-      isLoading: false,
+    this.setState(({ page }) => ({
+      page: page + 1,
+      isLoading: true,
     }));
   };
   render() {
     const { isLoading, gallerys, totalHits } = this.state;
-    let variables = '';
-    if (isLoading === true) {
-      variables = (
-        <>
-          <ImageGallery gallerys={this.state.gallerys} />
-          <Loader />
-          <Button onClickBtn={this.onClickBtn} />
-        </>
-      );
-    } else if (
-      isLoading === false &&
-      gallerys.length !== this.state.totalHits
-    ) {
-      variables = (
-        <>
-          <ImageGallery gallerys={this.state.gallerys} />
-
-          <Button onClickBtn={this.onClickBtn} />
-        </>
-      );
-    } else if (gallerys.length === totalHits) {
-      variables = <ImageGallery gallerys={this.state.gallerys} />;
-    }
     return (
       <div>
         <Searchbar search={this.handleSubmitForm} />
-        {variables}
+        <ImageGallery gallerys={this.state.gallerys} />
         <ToastContainer autoClose={3000} />
+        {isLoading && <Loader />}
+        {!isLoading && gallerys.length > 0 && gallerys.length !== totalHits && (
+          <Button onClickBtn={this.onClickBtn} />
+        )}
       </div>
     );
   }
